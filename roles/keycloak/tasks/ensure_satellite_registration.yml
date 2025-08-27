@@ -1,0 +1,23 @@
+---
+
+# We only care about RHIS instances, the system will be registered to a Satellite
+# if you need more control, use the redhat.satellite collection directly or use register_hosts role from rhis_builder_satellite
+
+- name: "Generate Satellite registration script"
+  redhat.satellite.registration_command:
+    username: "{{ satellite_username | default(omit) }}"
+    password: "{{ satellite_password | default(omit) }}"
+    # use_gssapi: "{{ satellite_use_gssapi | default(omit) }}"
+    server_url: "{{ satellite_url }}"
+    organization: "{{ satellite_organization | default(omit) }}"
+    activation_keys: "{{ satellite_activation_keys }}"
+    force: "{{ satellite_registration_force }}"
+    insecure: "{{ satellite_registration_insecure }}"            # for the registration command
+    validate_certs: "{{ satellite_validate_certs }}"      # for the api call
+  register: rc_result
+
+- name: "Perform registration" # noqa command-instead-of-shell
+  ansible.builtin.shell:       # This has pipes
+    cmd: "{{ rc_result.registration_command }}"
+  register: registration_result
+  changed_when: registration_result.rc == 0

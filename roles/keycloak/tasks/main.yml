@@ -1,0 +1,82 @@
+---
+
+- name: "Validate the requested configuration"
+  ansible.builtin.import_tasks: "validate_requested_config.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_validate
+
+- name: "Register to Satellite if requested"
+  when: register_satellite
+  ansible.builtin.import_tasks: "ensure_satellite_registration.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_sat_registration
+
+- name: "Configure the Keycloak prerequisites"
+  ansible.builtin.import_tasks: "ensure_prerequisites.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_prerequisites
+
+- name: "Configure the Keycloak firewall prerequisites"
+  ansible.builtin.import_tasks: "ensure_firewall_config.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_firewalld
+
+- name: "Configure the Keycloak default postgresql tuning"
+  ansible.builtin.import_tasks: "ensure_basic_pg_tuning.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_pg_tuning
+
+- name: "Configure the Keycloak database"
+  ansible.builtin.import_tasks: "ensure_keycloak_db.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_db
+
+- name: "Install Keycloak"
+  ansible.builtin.import_tasks: "install_keycloak.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_install
+
+- name: "Register to IdM for certificate generation"
+  when: register_idm
+  ansible.builtin.import_tasks: "ensure_idm_registration.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_idm_registration
+
+- name: "Generate HTTPS certificates for keycloak"
+  when: certificates_idm
+  ansible.builtin.import_tasks: "ensure_idm_certificates.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_idm_certificates
+
+- name: "Bootstrap Keycloak"
+  ansible.builtin.import_tasks: "bootstrap_keycloak.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_bootstrap
+
+- name: "Configure Keycloak"
+  ansible.builtin.import_tasks: "configure_keycloak.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_configure
+
+- name: "Configure Keycloak Systemd Service"
+  ansible.builtin.import_tasks: "ensure_keycloak_service.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_configure_service
+
+- name: "Finalize Keycloak"
+  ansible.builtin.import_tasks: "finalize_keycloak.yml"
+  tags:
+    - tags_keycloak
+    - tags_keycloak_finalize

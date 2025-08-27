@@ -1,0 +1,16 @@
+---
+
+# Validate the service
+# Ensure it is running.sudo systemctl stop keycloak
+- name: "Reconfigure Keycloak in with Production Database"
+  ansible.builtin.shell: 'export P="{{ keycloak_admin_password }}";{{ keycloak_install_dir }}/bin/kc.sh bootstrap-admin user --verbose --username admin --password:env P' # noqa yaml[line-length]
+  register: bootstrap_result
+  changed_when: bootstrap_result.rc == 0
+
+
+- name: "Reload and restart the service"
+  ansible.builtin.systemd_service:
+    name: "keycloak"
+    daemon_reload: true
+    enabled: true
+    state: "restarted"

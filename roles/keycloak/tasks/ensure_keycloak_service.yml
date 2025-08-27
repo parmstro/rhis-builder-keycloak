@@ -1,0 +1,17 @@
+---
+
+# template the Service
+- name: "Create the systemd unit file for keycloak"
+  ansible.builtin.template:
+    src: "keycloak_unit_file.j2"
+    dest: "/etc/systemd/system/keycloak.service"
+    mode: "0640"
+    owner: "root"
+    group: "root"
+
+- name: "Stop and reload the service to prepare for finalize"
+  ansible.builtin.systemd_service:
+    name: "keycloak"
+    daemon_reload: true
+    enabled: true
+    state: "stopped"

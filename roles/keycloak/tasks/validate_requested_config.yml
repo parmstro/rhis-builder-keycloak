@@ -1,0 +1,18 @@
+---
+
+# compare the requested java, keycloak and postgres versions to ensure supportability
+
+- name: "Assert a valid configuration"
+  when: keycloak_install_version == current_config.keycloak_version
+  ansible.builtin.assert:
+    that:
+      - keycloak_postgresql_install_version == current_config.postgresql_version
+      - keycloak_openjdk_install_version == current_config.openjdk_version
+  loop: "{{ keycloak_valid_configs }}"
+  loop_control:
+    loop_var: current_config
+  register: valid_config_check
+
+- name: "Fail if we do not have an ok result from the Assert"
+  ansible.builtin.debug:
+    msg: "Changed: {{ valid_config_check.changed }}   Skipped: {{ valid_config_check.skipped }}"

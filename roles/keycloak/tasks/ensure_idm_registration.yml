@@ -1,0 +1,9 @@
+---
+
+# Register to IdM when IdM register is true
+
+- name: "Install IdM client and register"
+  ansible.builtin.include_role:
+    name: "redhat.rhel_idm.ipaclient"
+#  vars:
+#    ipaclient_force_join: true

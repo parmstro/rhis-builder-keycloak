@@ -1,0 +1,103 @@
+---
+# prerequiistes
+
+- name: "Ensure that the system is updated to the latest patches"  # noqa package-latest
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+  register: dnf_result
+
+- name: "Ensure that the system required packages are installed"
+  ansible.builtin.dnf:
+    name:
+      - "wget"
+      - "unzip"
+      - "tar"
+      - "vim"
+      - "java-{{ keycloak_openjdk_install_version }}-openjdk"
+      - "java-{{ keycloak_openjdk_install_version }}-openjdk-devel"
+      - "python3-psycopg2"
+    state: present
+
+- name: "Get the default java version"
+  ansible.builtin.command: "java --version"
+  register: java_result
+  changed_when: java_result.rc == 0
+
+- name: "Assert the default java version is {{ keycloak_openjdk_install_version }}"
+  ansible.builtin.assert:
+    that: "'openjdk {{ keycloak_openjdk_install_version }}' in java_result.stdout"
+
+- name: "Add the local system Keycloak service user"
+  ansible.builtin.user:
+    name: "{{ keycloak_local_user }}"
+    local: true
+    home: "{{ keycloak_install_dir }}"
+    create_home: true
+    shell: "/sbin/nologin"
+    state: "present"
+    system: true
+
+- name: "Stop any existing postgresql installation"  # noqa ignore-errors
+  ansible.builtin.systemd_service:
+    name: postgresql
+    state: stopped
+  ignore_errors: true
+
+- name: "Remove the existing postgresql implementations" # noqa ignore-errors
+  ansible.builtin.dnf:
+    name: "postgresql*"
+    state: absent
+  ignore_errors: true
+
+- name: "Clean up any failed installs or old data"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  loop:
+    - "/var/lib/pgsql"
+    - "/usr/lib64/pgsql"
+    - "/usr/share/pgsql"
+
+- name: "Enable module"
+  ansible.builtin.command:
+    cmd: "dnf -y module enable postgresql:{{ keycloak_postgresql_install_version }}"
+  register: module_enable_result
+  changed_when: module_enable_result.rc == 0
+
+- name: "Install postgresql components"
+  ansible.builtin.dnf:
+    name:
+      - "postgresql-server"
+      - "postgresql-libs"
+      - "postgresql-contrib"
+    state: "present"
+
+- name: "Initialize the postgresql database"
+  ansible.builtin.command: "/usr/bin/postgresql-setup --initdb --unit postgresql"
+  register: initdb_result
+  changed_when: initdb_result.rc == 0
+
+- name: "Output of initialization"
+  ansible.builtin.debug:
+    var: initdb_result
+
+- name: "Configure the postgres service"
+  ansible.builtin.systemd_service:
+    name: "postgresql"
+    enabled: true
+    state: "started"
+
+# We are setting TPH off so this is an unneccary check as we will be rebooting anyway
+# But this is a good sample
+
+# - name: "Check if reboot is required"
+#   ansible.builtin.command: "needs-restarting -r"
+#   register: reboot_check
+#   changed_when: false
+#   failed_when: reboot_check.rc != 0 and reboot_check.rc != 1 # 0 for no reboot, 1 for reboot needed
+
+# - name: Reboot if required
+#   when: reboot_check.rc == 1
+#   ansible.builtin.reboot:
+#     msg: "Rebooting required by updates"

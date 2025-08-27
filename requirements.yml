@@ -1,0 +1,6 @@
+---
+
+collections:
+  - name: community.postgresql
+  - name: redhat.rhel_idm
+    version: ">1.14.7"

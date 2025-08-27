@@ -1,0 +1,41 @@
+---
+
+# Create the keycloak db, user and permissions
+
+- name: "Create the keycloak database"
+  community.postgresql.postgresql_db:
+    name: "keycloak"
+    state: "present"
+  become: true
+  become_user: postgres
+
+- name: "Create the keycloak user for database keycloak"
+  community.postgresql.postgresql_user:
+    name: "{{ keycloak_db_user }}"
+    comment: "Configured by rhis-builder-keycloak"
+    login_db: "keycloak"
+    password: "{{ keycloakuser_db_password }}"
+    state: "present"
+  become: true
+  become_user: postgres
+
+- name: "Grant the keycloak user ALL privileges for database keycloak"
+  community.postgresql.postgresql_privs:
+    login_db: "keycloak"
+    role: "{{ keycloak_db_user }}"
+    privs: "ALL"
+    type: "database"
+    state: "present"
+  become: true
+  become_user: postgres
+
+- name: "Grant the keycloak user ALL privileges for schema public"
+  community.postgresql.postgresql_privs:
+    login_db: "keycloak"
+    role: "{{ keycloak_db_user }}"
+    privs: "ALL"
+    type: "schema"
+    obj: "public"
+    state: "present"
+  become: true
+  become_user: postgres

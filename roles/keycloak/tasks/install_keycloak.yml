@@ -1,0 +1,105 @@
+---
+
+- name: "If we have registered to Satellite, get the content from Satellite"
+  when: register_satellite
+  block:
+
+    - name: "Get the file repository info"
+      redhat.satellite.repository_info:
+        username: "{{ satellite_username }}"
+        password: "{{ satellite_password }}"
+        server_url: "{{ satellite_url }}"
+        organization: "{{ satellite_organization }}"
+        validate_certs: "{{ satellite_validate_certs }}"
+        name: "{{ keycloak_installer_info.keycloak_file_repo_name }}"
+        product: "{{ keycloak_installer_info.keycloak_product }}"
+      register: result
+
+    - name: "Determine the base url"
+      ansible.builtin.set_fact:
+        software_baseurl: "{{ result.repository.full_path }}"
+
+    - name: "Fetching from repository:"
+      ansible.builtin.debug:
+        var: result.repository.full_path
+
+    - name: "Get the name of the keycloak file "
+      redhat.satellite.resource_info:
+        username: "{{ satellite_username }}"
+        password: "{{ satellite_password }}"
+        server_url: "{{ satellite_url }}"
+        organization: "{{ satellite_organization }}"
+        validate_certs: "{{ satellite_validate_certs }}"
+        resource: file_units
+        search: "name ~ {{ keycloak_installer_info.keycloak_installer_version }}.zip"
+      register: files
+
+    - name: "Set the download checksum"
+      ansible.builtin.set_fact:
+        sha256sum: "{{ files.resources[0].checksum }}"
+
+    - name: "The expected checksum is:"
+      ansible.builtin.debug:
+        var: files.resources[0]
+
+    - name: "Set the url for the download file"
+      ansible.builtin.set_fact:
+        download_path: "{{ result.repository.full_path }}{{ keycloak_installer_info.keycloak_installer_version }}.zip"
+
+    - name: "Preparing to download:"
+      ansible.builtin.debug:
+        var: download_path
+
+    - name: "Ensure the destination directory exists"
+      ansible.builtin.file:
+        path: "{{ keycloak_installer_info.keycloak_destination_dir }}"
+        state: directory
+        mode: "0744"
+
+    - name: "Clean up any failed downloads"
+      ansible.builtin.file:
+        path: "{{ keycloak_installer_info.keycloak_destination_dir }}/rhbk*"
+        state: absent
+
+    # get_url consistently borks the file on download. using curl
+    - name: "Download the file" # noqa command-instead-of-module
+      ansible.builtin.command: "curl -o {{ keycloak_installer_info.keycloak_destination_dir }}/{{ keycloak_installer_info.keycloak_installer_version }}.zip {{ download_path }}"  # noqa yaml[line-length]
+      register: download_result
+      changed_when: download_result.rc == 0
+
+    - name: "Checksum the download"
+      ansible.builtin.command: "sha256sum {{ keycloak_installer_info.keycloak_destination_dir }}/{{ keycloak_installer_info.keycloak_installer_version }}.zip"
+      register: download_sum
+      changed_when: download_sum.rc == 0
+
+    - name: "The download checksum is:"
+      ansible.builtin.debug:
+        var: download_sum
+
+    - name: "Validate the checksum"
+      when: sha256sum != ""
+      ansible.builtin.assert:
+        that: download_sum.stdout[:64] == sha256sum
+
+- name: "If we are not registered to Satellite, get the content from upstream"
+  when: not register_satellite
+  block:
+
+      # get_url consistently borks the download so using curl
+    - name: "Download the zip file as keycloak.tar.gz from upstream source" # noqa command-instead-of-module
+      ansible.builtin.command: "curl {{ keycloak_zipfile_upstream_url }} --output={{ keycloak_installer_info.keycloak_destination_dir }}/{{ keycloak_installer_info.keycloak_installer_version }}.gz"  # noqa yaml[line-length]
+      register: curl_result
+      changed_when: curl_result.rc == 0
+
+- name: "Extract the zip file in the installation directory"
+  ansible.builtin.unarchive:
+    src: "{{ keycloak_installer_info.keycloak_destination_dir }}/{{ keycloak_installer_info.keycloak_installer_version }}.zip"
+    dest: "{{ keycloak_installer_info.keycloak_destination_dir }}"
+    remote_src: true
+    mode: "0755"
+    owner: "{{ keycloak_local_user }}"
+    group: "{{ keycloak_local_user }}"
+
+- name: "Enable fapolicyd profile"
+  ansible.builtin.include_role:
+    name: "redhat.rhel_system_roles.fapolicyd"

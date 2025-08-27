@@ -1,0 +1,9 @@
+---
+
+- name: "Configure the keycloak installation"
+  ansible.builtin.template:
+    src: "keycloak.conf.j2"
+    dest: "{{ keycloak_install_dir }}/conf/keycloak.conf"
+    mode: "0640"
+    owner: "keycloak"
+    group: "keycloak"
