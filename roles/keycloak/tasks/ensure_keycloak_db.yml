@@ -14,7 +14,7 @@
     name: "{{ keycloak_db_user }}"
     comment: "Configured by rhis-builder-keycloak"
     login_db: "keycloak"
-    password: "{{ keycloakuser_db_password }}"
+    password: "{{ keycloak_db_user_password }}"
     state: "present"
   become: true
   become_user: postgres
