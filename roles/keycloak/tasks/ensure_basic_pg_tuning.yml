@@ -38,7 +38,7 @@
 
 - name: "Create the tuned.conf file"
   ansible.builtin.template:
-    src: "tuned.conf.j2"
+    src: "postgresql_tuned.conf.j2"
     dest: "/etc/tuned/keycloak/tuned.conf"
     mode: "0770"
     owner: "root"
