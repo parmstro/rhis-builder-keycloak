@@ -26,6 +26,9 @@ We might run this to test new service hardening configurations.
 
 The roles are outlined below.
 
+NOTE: This has now been integrated into [rhis-provisioner-container](https://github.com/parmstro/rhis-provisioner-container). The templates and group_vars examples for example.ca have been added to [rhis-builder-inventory](https://github.com/parmstro/rhis-builder-inventory).
+
+
 ## Roles
 ### keycloak
 
