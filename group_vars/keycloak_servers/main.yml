@@ -20,7 +20,7 @@ keycloak_installer_info:
   keycloak_installer_version: "rhbk-26.0.14"
 
 register_satellite: true  # works for any rhsm target
-satellite_url: "https://satellite1.parmstrong.ca"
+satellite_url: "https://satellite.example.ca"
 satellite_username: "{{ satellite_username_vault }}"
 satellite_password: "{{ satellite_password_vault }}"
 satellite_use_gssapi: false
@@ -72,12 +72,12 @@ register_idm: true
 
 ipaadmin_principal: "{{ ipa_admin_principal_vault }}"
 ipaadmin_password: "{{ ipa_admin_password_vault }}"
-ipaclient_domain: "parmstrong.ca"
+ipaclient_domain: "example.ca"
 ipaclient_mkhomedir: true
-ipaclient_ntp_servers:
-  - "192.168.252.7"
-  - "192.168.252.8"
-  - "192.168.252.9"
+ipaclient_ntp_servers:  # "these are not the servers you are looking for... "
+  - "time.aws.ca"
+  - "time.chu.nrc.ca"
+  - "time.google.com"
 # ipaclient_ssh_trust_dns: true
 # ipasssd_enable_dns_updates: true
 ### END IdM Registration ONLY ###
@@ -95,14 +95,14 @@ ipaclient_ntp_servers:
 ### BEGIN IdM Certificates ###
 certificates_idm: true
 
-ipa_server_fqdn: "idm5.parmstrong.ca"
+ipa_server_fqdn: "idm.example.ca"
 force_regen: true
 ssl_private_key_passphrase: "{{ ssl_private_key_passphrase_vault }}"
-ssl_private_key_cipher: des3
+ssl_private_key_cipher: aes256
 ssl_private_key_size: 2048
-csr_email_address: "parmstro@parmstrong.ca"
-csr_organization_name: "Paul Armstrong"
-csr_organization_unit_name: "Red Lab"
+csr_email_address: "bobsurunkle@example.ca"
+csr_organization_name: "Bob Surunkle"
+csr_organization_unit_name: "Example Lab"
 csr_country_name: "CA"
 csr_state_or_province_name: "ON"
 csr_locality_name: "Cambridge"
