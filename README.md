@@ -1,3 +1,10 @@
+## rhis-builder-keycloak
+
+Fork it. Clone it. Configure it. Test it. Change it. Commit it. Create a PR.
+***
+**NOTE:** All ansible variables, files and templates for rhis-builder-* repos are now configured through the unified inventory project [rhis-builder-inventory](https://github.com/parmstro/rhis-builder-inventory)
+
+
 ## Purpose
 
 The rhis-builder-keycloak repository contains roles used in the Red Hat Infrastructure Standard to deploy and configure keycloak either as a standalone server or as a containerized deployment (containerized is in progress) to broker identity to systems and applications within the RHIS deployment. 
