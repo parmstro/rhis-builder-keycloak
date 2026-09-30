@@ -6,6 +6,7 @@
   ansible.builtin.shell: 'export P="{{ keycloak_admin_password }}";{{ keycloak_install_dir }}/bin/kc.sh bootstrap-admin user --verbose --username admin --password:env P' # noqa yaml[line-length]
   register: bootstrap_result
   changed_when: bootstrap_result.rc == 0
+  no_log: true
 
 
 - name: "Reload and restart the service"

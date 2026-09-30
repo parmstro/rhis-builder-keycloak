@@ -10,3 +10,4 @@
   ansible.builtin.shell: 'export P="{{ keycloak_admin_password }}";{{ keycloak_install_dir }}/bin/kc.sh bootstrap-admin user --verbose --username {{ keycloak_admin_username }} --password:env P' # noqa yaml[line-length]
   register: bootstrap_result
   changed_when: bootstrap_result.rc == 0
+  no_log: true
